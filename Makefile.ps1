@@ -17,6 +17,7 @@ function Format {
 function Lint {
   # If ruff is installed
   ruff check .
+  
 }
 
 function DB-Migrate {
