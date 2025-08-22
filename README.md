@@ -1,88 +1,116 @@
 # FastAPI Authentication Boilerplate
 
-Production-ready authentication starter for FastAPI with clean architecture, JWT (access/refresh via HttpOnly cookies), email verification, password reset, RBAC, sessions, and auditing.
+A production-ready authentication and session management system built with [FastAPI](https://fastapi.tiangolo.com/). It provides robust, secure primitives for JWT-based auth, sessions, email verification, password reset, and RBAC, with clean architecture and deploy-ready tooling.
 
 ## Features
-- User registration (email/password)
-- Login with access (15m) + refresh (30d) JWT via HttpOnly, Secure, SameSite cookies
-- Logout (revoke session)
-- Refresh with rotating refresh tokens (per-session, hashed in DB)
-- Email verification (token-based)
-- Password reset (token-based)
-- Role-based access control (user/admin)
-- Session management (list + revoke)
-- Audit log (login, logout, refresh, reset)
-- Argon2 password hashing
-- Device fingerprinting (IP + User-Agent hash)
-- Rate limit login attempts (Redis)
-- SQLAlchemy 2.0, Alembic, Postgres, Docker, Pytest, Pydantic v2
 
-## Quick Start (Docker)
+- JWT authentication with access and refresh tokens (HttpOnly cookies)
+- Device-aware sessions (IP and User-Agent fingerprint)
+- Argon2 password hashing (memory-hard)
+- Email verification and password reset flows
+- Role-based access control (RBAC)
+- Rate limiting for login attempts (Redis or in-memory fallback)
+- SQLAlchemy 2.0 + Alembic migrations
+- Dockerfiles and compose for local and production
 
-1. Create env file from example
+## Architecture
+
 ```
+app/
+  api/        # routers and dependencies
+  core/       # config, security, rate limiting
+  db/         # engine/session setup
+  models/     # SQLAlchemy models
+  schemas/    # Pydantic models
+  services/   # business logic (auth, sessions, email)
+  utils/      # helpers (cookies, etc.)
+  main.py     # FastAPI app factory/assembly
+alembic/      # database migrations
+```
+
+## Setup (Docker)
+
+1) Copy environment template and configure values:
+```bash
 cp env.example .env
 ```
 
-2. Start services (development compose)
-```
+2) Start services (development):
+```bash
 docker compose up --build
 ```
 
-3. Apply migrations (first run only)
-```
+3) Apply migrations:
+```bash
 docker compose exec api alembic upgrade head
 ```
 
-4. Open API docs: http://localhost:8000/docs
-
-## Production (Docker)
-
-Use the production compose file with Gunicorn and Postgres:
-
+4) Open API docs:
 ```
-cp env.example .env        # or set env vars in your platform
+http://localhost:8000/docs
+```
+
+## Setup (Local)
+
+1) Create a virtual environment and install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+2) Provision a database (PostgreSQL recommended) and set env vars. For SQLite, set `DB_BACKEND=sqlite` and optionally `SQLITE_PATH`.
+
+3) (Optional) Start Redis for rate limiting, or leave `REDIS_URL` unset to use in-memory fallback (see `app/core/rate_limit.py`).
+
+4) Run the server:
+```bash
+uvicorn app.main:app --reload --port 8000
+```
+
+## Configuration
+
+Configuration is managed by Pydantic Settings from `.env` (see `app/core/config.py`). A ready-to-copy template is provided in `env.example`.
+
+Key variables:
+- `SECRET_KEY` (required)
+- `DATABASE_URL` (for Postgres) or `DB_BACKEND=sqlite` with `SQLITE_PATH`
+- `COOKIE_SECURE` and `COOKIE_SAMESITE` for cookie policy
+- `REDIS_URL` (optional). If not set, rate limiting falls back to in-memory per-process storage
+
+## Migrations
+
+Generate and apply migrations with Alembic:
+```bash
+alembic revision --autogenerate -m "message"
+alembic upgrade head
+```
+
+## Testing
+
+```bash
+pytest -q
+```
+
+## Production Deployment
+
+Use the production compose file (Gunicorn + Uvicorn workers):
+```bash
+cp env.example .env
 docker compose -f docker-compose.prod.yml up --build -d
 docker compose -f docker-compose.prod.yml exec app alembic upgrade head
 ```
 
-Notes:
-- Provide strong `SECRET_KEY` and a real `DATABASE_URL` via environment or `.env`.
-- Redis is optional for rate limiting. If you do not set `REDIS_URL`, an in-memory fallback is used (see `app/core/rate_limit.py`).
-- For HTTPS, set `COOKIE_SECURE=true` and run behind a reverse proxy/ingress that terminates TLS.
+Recommendations:
+- Provide a strong `SECRET_KEY` and a production `DATABASE_URL`
+- Run behind a TLS-terminating proxy and set `COOKIE_SECURE=true`
+- Set `REDIS_URL` to enable distributed rate limiting (optional)
 
-## Local Development (without Docker)
-- Create and activate a virtualenv
-- `pip install -r requirements.txt`
-- Ensure Postgres (and optional Redis) are running and env vars are set
-- `uvicorn app.main:app --reload`
+## Security Notes
 
-## Project Structure
-```
-app/
-  api/
-    routes/
-  core/
-  db/
-  models/
-  schemas/
-  services/
-  utils/
-  main.py
-alembic/
-  versions/
-Dockerfile
-docker-compose.yml
-requirements.txt
-.env.example
-```
+- Passwords are hashed with Argon2
+- JWTs are set in HttpOnly cookies to mitigate XSS token theft
+- Refresh tokens rotate; previous tokens are invalidated
+- Login attempts are rate limited via Redis when available
 
-## Testing
-```
-pytest -q
-```
+## License
 
-## Notes
-- Cookies are HttpOnly, Secure, SameSite=Lax by default (configurable).
-- Refresh tokens rotate on each use and previous one is invalidated.
-- Email sending is stubbed; integrate your provider in `app/services/email.py`.
+Licensed under the MIT License. See `LICENSE` for details.
