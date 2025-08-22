@@ -1,5 +1,5 @@
 from typing import Generator, Optional
-from fastapi import Cookie, Depends, Header, HTTPException, Request
+from fastapi import Cookie, Header, Request
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
