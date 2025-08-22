@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    image: fastapi-auth-app:latest
+    depends_on:
+      - db
+      # - redis  # optional
+    environment:
+      # Secrets should be provided via your secret manager or .env in production
+      APP_ENV: prod
+      SECRET_KEY: ${SECRET_KEY:-CHANGE_ME}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://postgres:postgres@db:5432/app}
+      # REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      COOKIE_SECURE: "true"
+      COOKIE_SAMESITE: lax
+    ports:
+      - "8000:8000"
+    command: ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-w", "2", "-b", "0.0.0.0:8000", "app.main:app"]
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: app
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+
+volumes:
+  db_data:
