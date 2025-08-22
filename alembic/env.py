@@ -14,9 +14,8 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-from app.core.config import settings  # noqa: E402
-# Interpret the config file for Python logging.
 # Add your model's MetaData object here for 'autogenerate' support
+from app.core.config import settings  # noqa: E402
 from app.db.base import Base  # noqa: E402
 from app.models import *  # noqa: F401,F403,E402
 

@@ -8,8 +8,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.security import (create_jwt_token, fingerprint,
-                               get_password_hash, verify_password)
+from app.core.security import (
+    create_jwt_token,
+    fingerprint,
+    get_password_hash,
+    verify_password,
+)
 from app.models import EmailToken, SessionToken, User
 
 ACCESS_TTL = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
