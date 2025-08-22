@@ -1,8 +1,3 @@
-from typing import Optional
-
-from app.core.config import settings
-
-
 class EmailService:
     """Stub email service. Replace with SendGrid/SES/etc."""
 

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 import secrets
 from typing import Optional, Tuple
 
@@ -8,7 +8,7 @@ from sqlalchemy import select
 
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password, create_jwt_token, fingerprint
-from app.models import User, SessionToken, EmailToken, Role
+from app.models import User, SessionToken, EmailToken
 
 
 ACCESS_TTL = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)

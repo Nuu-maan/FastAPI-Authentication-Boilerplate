@@ -8,7 +8,7 @@ from app.core.config import settings
 from app.core.rate_limit import is_allowed
 from app.core.security import decode_jwt
 from app.core.security import get_password_hash
-from app.schemas.auth import LoginIn, EmailTokenIn, PasswordResetRequestIn, PasswordResetIn
+from app.schemas.auth import LoginIn, PasswordResetRequestIn, PasswordResetIn
 from app.schemas.user import UserCreate, UserOut
 from app.schemas.common import MessageOut
 from app.services import auth as auth_svc

@@ -1,6 +1,5 @@
 import hashlib
 import hmac
-import time
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 

@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Iterable
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
