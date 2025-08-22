@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHONPATH: .
+      SECRET_KEY: test-secret
+      DATABASE_URL: sqlite:///:memory:
+      DB_BACKEND: sqlite
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
