@@ -1,7 +1,8 @@
 from functools import lru_cache
-from pydantic_settings import BaseSettings
+from typing import Literal, Optional
+
 from pydantic import Field
-from typing import Optional, Literal
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -22,7 +23,9 @@ class Settings(BaseSettings):
     # Database selection
     DB_BACKEND: Literal["postgres", "sqlite"] = Field(default="postgres")
     DATABASE_URL: Optional[str] = None  # If provided, overrides DB_BACKEND/SQLITE_PATH
-    SQLITE_PATH: str = Field(default="./app.db")  # Used when DB_BACKEND=sqlite and DATABASE_URL not provided
+    SQLITE_PATH: str = Field(
+        default="./app.db"
+    )  # Used when DB_BACKEND=sqlite and DATABASE_URL not provided
 
     # Redis is optional; if unset, in-memory fallback will be used for simple rate limiting
     REDIS_URL: Optional[str] = None

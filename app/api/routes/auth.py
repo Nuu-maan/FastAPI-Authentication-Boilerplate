@@ -1,21 +1,21 @@
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException, Response, Request
-from sqlalchemy.orm import Session
-from sqlalchemy import select
 
-from app.api.deps import get_db_session, get_client_meta
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.api.deps import get_client_meta, get_db_session
 from app.core.config import settings
 from app.core.rate_limit import is_allowed
-from app.core.security import decode_jwt
-from app.core.security import get_password_hash
-from app.schemas.auth import LoginIn, PasswordResetRequestIn, PasswordResetIn
-from app.schemas.user import UserCreate, UserOut
-from app.schemas.common import MessageOut
-from app.services import auth as auth_svc
-from app.services.email import get_email_service
-from app.services.audit import log_action
-from app.utils.cookies import set_cookie, clear_cookie
+from app.core.security import decode_jwt, get_password_hash
 from app.models import User
+from app.schemas.auth import LoginIn, PasswordResetIn, PasswordResetRequestIn
+from app.schemas.common import MessageOut
+from app.schemas.user import UserCreate, UserOut
+from app.services import auth as auth_svc
+from app.services.audit import log_action
+from app.services.email import get_email_service
+from app.utils.cookies import clear_cookie, set_cookie
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -37,7 +37,8 @@ def register(
         db,
         user,
         purpose="verify_email",
-        expires_at=datetime.utcnow() + timedelta(hours=settings.EMAIL_TOKEN_EXPIRE_HOURS),
+        expires_at=datetime.utcnow()
+        + timedelta(hours=settings.EMAIL_TOKEN_EXPIRE_HOURS),
     )
     get_email_service().send_verification(user.email, et.token)
 
@@ -56,15 +57,27 @@ def login(
     rl_key = f"login:{payload.email}:{meta['ip']}"
     allowed, retry_after = is_allowed(rl_key, limit=5, window_seconds=60)
     if not allowed:
-        raise HTTPException(status_code=429, detail=f"Too many attempts. Try again in {retry_after}s")
+        raise HTTPException(
+            status_code=429, detail=f"Too many attempts. Try again in {retry_after}s"
+        )
 
     try:
         access, refresh, st = auth_svc.login(db, payload.email, payload.password, meta["ip"], meta["user_agent"])  # type: ignore[index]
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    set_cookie(response, "access_token", access, max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60)
-    set_cookie(response, "refresh_token", refresh, max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600)
+    set_cookie(
+        response,
+        "access_token",
+        access,
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+    set_cookie(
+        response,
+        "refresh_token",
+        refresh,
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
+    )
 
     log_action(db, user_id=st.user_id, action="login", ip=meta["ip"], user_agent=meta["user_agent"])  # type: ignore[index]
     return {"message": "logged in"}
@@ -108,8 +121,18 @@ def refresh(
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
 
-    set_cookie(response, "access_token", access, max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60)
-    set_cookie(response, "refresh_token", new_refresh, max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600)
+    set_cookie(
+        response,
+        "access_token",
+        access,
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+    set_cookie(
+        response,
+        "refresh_token",
+        new_refresh,
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
+    )
 
     log_action(db, user_id=uid, action="refresh", ip=meta["ip"], user_agent=meta["user_agent"])  # type: ignore[index]
     return {"message": "refreshed"}
@@ -135,7 +158,8 @@ def resend_verification(request: Request, db: Session = Depends(get_db_session))
         db,
         user,
         purpose="verify_email",
-        expires_at=datetime.utcnow() + timedelta(hours=settings.EMAIL_TOKEN_EXPIRE_HOURS),
+        expires_at=datetime.utcnow()
+        + timedelta(hours=settings.EMAIL_TOKEN_EXPIRE_HOURS),
     )
     get_email_service().send_verification(user.email, et.token)
     return {"message": "verification sent"}
@@ -163,14 +187,17 @@ def verify_email(
 
 
 @router.post("/request-password-reset", response_model=MessageOut)
-def request_password_reset(payload: PasswordResetRequestIn, db: Session = Depends(get_db_session)):
+def request_password_reset(
+    payload: PasswordResetRequestIn, db: Session = Depends(get_db_session)
+):
     user = db.scalar(select(User).where(User.email == payload.email))
     if user:
         et = auth_svc.request_email_token(
             db,
             user,
             purpose="reset_password",
-            expires_at=datetime.utcnow() + timedelta(hours=settings.PASSWORD_RESET_TOKEN_EXPIRE_HOURS),
+            expires_at=datetime.utcnow()
+            + timedelta(hours=settings.PASSWORD_RESET_TOKEN_EXPIRE_HOURS),
         )
         get_email_service().send_password_reset(user.email, et.token)
     return {"message": "if account exists, reset email sent"}

@@ -19,7 +19,12 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def create_jwt_token(subject: str, expires_delta: timedelta, token_type: str, extra: Optional[Dict[str, Any]] = None) -> str:
+def create_jwt_token(
+    subject: str,
+    expires_delta: timedelta,
+    token_type: str,
+    extra: Optional[Dict[str, Any]] = None,
+) -> str:
     now = datetime.now(timezone.utc)
     payload: Dict[str, Any] = {
         "sub": subject,

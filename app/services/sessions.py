@@ -1,12 +1,17 @@
 from datetime import datetime
-from sqlalchemy.orm import Session
+
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.models import SessionToken
 
 
 def list_sessions(db: Session, user_id: int) -> list[SessionToken]:
-    stmt = select(SessionToken).where(SessionToken.user_id == user_id).order_by(SessionToken.created_at.desc())
+    stmt = (
+        select(SessionToken)
+        .where(SessionToken.user_id == user_id)
+        .order_by(SessionToken.created_at.desc())
+    )
     return list(db.scalars(stmt))
 
 

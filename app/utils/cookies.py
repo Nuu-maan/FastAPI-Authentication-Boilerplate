@@ -1,10 +1,13 @@
-from fastapi import Response
 from typing import Optional
+
+from fastapi import Response
 
 from app.core.config import settings
 
 
-def set_cookie(response: Response, name: str, value: str, max_age: Optional[int] = None) -> None:
+def set_cookie(
+    response: Response, name: str, value: str, max_age: Optional[int] = None
+) -> None:
     response.set_cookie(
         key=name,
         value=value,

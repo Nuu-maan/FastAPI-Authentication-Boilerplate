@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-from app.core.config import settings
 from app.api.routes.auth import router as auth_router
-from app.api.routes.users import router as users_router
 from app.api.routes.sessions import router as sessions_router
+from app.api.routes.users import router as users_router
+from app.core.config import settings
 
 app = FastAPI(title=settings.APP_NAME)
 

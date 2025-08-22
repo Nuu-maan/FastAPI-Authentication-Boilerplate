@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_db_session
 from app.core.security import decode_jwt
-from app.services.sessions import list_sessions, revoke_session
 from app.schemas.session import SessionOut
+from app.services.sessions import list_sessions, revoke_session
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
